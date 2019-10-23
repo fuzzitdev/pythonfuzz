@@ -1,0 +1,7 @@
+.idea
+venv
+__pycache__
+crash-*
+dist/
+build/
+pythonfuzz.egg-info/

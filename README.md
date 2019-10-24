@@ -50,7 +50,7 @@ or hangs/they run more the the specified timeout limit per testcase.
 
 ### Running
 
-The next step is to download js-fuzz and then run your fuzzer
+The next step is to download pythonfuzz and then run your fuzzer
 
 ```bash
 pip install pythonfuzz

@@ -23,4 +23,5 @@ setuptools.setup(
         "Topic :: Software Development :: Testing"
     ],
     python_requires='>=3.5.3',
+    packages=setuptools.find_packages('.')
 )

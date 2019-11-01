@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name="pythonfuzz",
-    version="1.0.0",
+    version="1.0.1",
     author="fuzzit.dev",
     author_email="support@fuzzit.dev",
     description="coverage-guided fuzz testing for python",

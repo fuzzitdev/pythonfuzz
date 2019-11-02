@@ -45,9 +45,18 @@ class Corpus(object):
             return 0
         return random.randint(0, n-1)
 
+    # Exp2 generates n with probability 1/2^(n+1).
     @staticmethod
     def _rand_exp():
-        return Corpus._rand(round(math.log(2**32) - 1))
+        rand_bin = bin(random.randint(0, 2**32-1))[2:]
+        rand_bin = '0'*(32 - len(rand_bin)) + rand_bin
+        count = 0
+        for i in rand_bin:
+            if i == '0':
+                count +=1
+            else:
+                break
+        return count
 
     @staticmethod
     def _choose_len(n):
@@ -93,8 +102,7 @@ class Corpus(object):
 
     def mutate(self, buf):
         res = buf[:]
-        # nm = self._rand_exp()
-        nm = self._rand(32)
+        nm = self._rand_exp()
         for i in range(nm):
             # Remove a range of bytes.
             x = self._rand(15)

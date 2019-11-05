@@ -1,6 +1,4 @@
 # pythonfuzz: coverage-guided fuzz testing for python
-[![Join the chat at https://slack.fuzzit.dev](https://app.fuzzit.dev/static/slack-join.svg)](https://slack.fuzzit.dev)
-
 
 PythonFuzz is coverage-guided [fuzzer](https://developer.mozilla.org/en-US/docs/Glossary/Fuzzing) for testing python packages.
 

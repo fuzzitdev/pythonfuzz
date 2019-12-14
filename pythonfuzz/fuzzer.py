@@ -67,18 +67,18 @@ class Fuzzer(object):
             self._total_executions, log_type, self._total_coverage, self._corpus.length, execs_per_second, rss))
         return rss
 
-    def write_crash(self, buf):
+    def write_sample(self, prefix='crash-', buf):
         m = hashlib.sha256()
         m.update(buf)
         if self._exact_artifact_path:
             crash_path = self._exact_artifact_path
         else:
-            crash_path = 'crash-' + m.hexdigest()
+            crash_path = prefix + m.hexdigest()
         with open(crash_path, 'wb') as f:
             f.write(buf)
-        logging.info('crash was written to {}'.format(crash_path))
+        logging.info('sample was written to {}'.format(crash_path))
         if len(buf) < 200:
-            logging.info('crash = {}'.format(buf.hex()))
+            logging.info('sample = {}'.format(buf.hex()))
 
     def start(self):
         logging.info("#0 READ units: {}".format(self._corpus.length))
@@ -94,11 +94,12 @@ class Fuzzer(object):
                 self._p.kill()
                 logging.info("=================================================================")
                 logging.info("timeout reached. testcase took: {}".format(self._timeout))
+                self.write_sample(prefix='timeout-', buf)
                 break
 
             total_coverage = parent_conn.recv()
             if type(total_coverage) != int:
-                self.write_crash(buf)
+                self.write_sample(buf)
                 break
 
             self._total_executions += 1
@@ -114,7 +115,7 @@ class Fuzzer(object):
 
             if rss > self._rss_limit_mb:
                 logging.info('MEMORY OOM: exceeded {} MB. Killing worker'.format(self._rss_limit_mb))
-                self.write_crash(buf)
+                self.write_sample(buf)
                 self._p.kill()
                 break
 

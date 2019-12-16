@@ -5,6 +5,8 @@ import random
 import struct
 import hashlib
 
+from . import dictionnary
+
 
 INTERESTING8 = [-128, -1, 0, 1, 16, 32, 64, 100, 127]
 INTERESTING16 = [-32768, -129, 128, 255, 256, 512, 1000, 1024, 4096, 32767]
@@ -351,8 +353,9 @@ class CorpusError(Exception):
 
 class Corpus(object):
 
-    def __init__(self, dirs=None, max_input_size=4096, mutators_filter=None):
+    def __init__(self, dirs=None, max_input_size=4096, mutators_filter=None, dict_path=None):
         self._inputs = []
+        self._dict = dictionnary.Dictionary(dict_path)
         self._max_input_size = max_input_size
         self._dirs = dirs if dirs else []
         for i, path in enumerate(dirs):
@@ -457,7 +460,6 @@ class Corpus(object):
         res = buf[:]
         nm = self._rand_exp()
         for i in range(nm):
-
             # Select a mutator from those we can apply
             # We'll try up to 20 times, but if we don't find a
             # suitable mutator after that, we'll just give up.

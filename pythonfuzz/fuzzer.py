@@ -89,7 +89,8 @@ class Fuzzer(object):
                  max_input_size=4096,
                  close_fd_mask=0,
                  runs=-1,
-                 mutators_filter=None):
+                 mutators_filter=None,
+                 dict_path=None):
         self._target = target
         self._dirs = [] if dirs is None else dirs
         self._exact_artifact_path = exact_artifact_path
@@ -97,7 +98,7 @@ class Fuzzer(object):
         self._timeout = timeout
         self._regression = regression
         self._close_fd_mask = close_fd_mask
-        self._corpus = corpus.Corpus(self._dirs, max_input_size, mutators_filter)
+        self._corpus = corpus.Corpus(self._dirs, max_input_size, mutators_filter, dict_path)
         self._total_executions = 0
         self._executions_in_sample = 0
         self._last_sample_time = time.time()

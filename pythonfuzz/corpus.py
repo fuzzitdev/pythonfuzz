@@ -15,7 +15,7 @@ class Corpus(object):
     def __init__(self, dirs=None, max_input_size=4096):
         self._inputs = []
         self._max_input_size = max_input_size
-        self._dirs = [] if dirs is None else dirs
+        self._dirs = dirs if dirs else []
         for i, path in enumerate(dirs):
             if i == 0 and not os.path.exists(path):
                 os.mkdir(path)
@@ -27,9 +27,9 @@ class Corpus(object):
                     fname = os.path.join(path, i)
                     if os.path.isfile(fname):
                         self._add_file(fname)
-        self._seed_run_finished = True if len(self._inputs) == 0 else False
+        self._seed_run_finished = not self._inputs
         self._seed_idx = 0
-        self._save_corpus = True if len(dirs) > 0 and os.path.isdir(dirs[0]) else False
+        self._save_corpus = dirs and os.path.isdir(dirs[0])
 
     def _add_file(self, path):
         with open(path, 'rb') as f:

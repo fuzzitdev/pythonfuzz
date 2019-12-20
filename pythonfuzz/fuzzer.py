@@ -5,6 +5,7 @@ import psutil
 import hashlib
 import logging
 import coverage
+import functools
 import multiprocessing as mp
 
 from pythonfuzz import corpus
@@ -13,6 +14,28 @@ logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 logging.getLogger().setLevel(logging.DEBUG)
 
 SAMPLING_WINDOW = 5 # IN SECONDS
+
+if coverage.version.version_info <= (5, ):
+    # Since we're using an old version of coverage.py,
+    # we're monkey patching it a bit to improve the performances.
+
+    # Using memoization here gives +50% in performances, since this
+    # function triggers a lot of syscalls.
+    # See the benchmarks here:
+    #   - https://github.com/fuzzitdev/pythonfuzz/issues/9
+    @functools.lru_cache(None)
+    def abs_file(path):
+        """Return the absolute normalized form of `path`."""
+        try:
+            path = os.path.realpath(path)
+        except UnicodeError:
+            pass
+        path = os.path.abspath(path)
+        path = coverage.files.actual_path(path)
+        path = coverage.files.unicode_filename(path)
+        return path
+
+    coverage.files.abs_file = abs_file_cache
 
 
 def worker(target, child_conn):

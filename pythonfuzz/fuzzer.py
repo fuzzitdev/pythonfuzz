@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import sys
 import psutil
 import hashlib
 import logging
@@ -17,8 +18,13 @@ SAMPLING_WINDOW = 5 # IN SECONDS
 
 def worker(target, child_conn):
     # Silence the fuzzee's noise
+    class DummyFile:
+        """No-op to trash stdout away."""
+        def write(self, x):
+            pass
     logging.captureWarnings(True)
     logging.getLogger().setLevel(logging.CRITICAL)
+    sys.stdout = DummyFile()
 
     cov = coverage.Coverage(branch=True, cover_pylib=True)
     cov.start()

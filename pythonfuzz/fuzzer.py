@@ -16,6 +16,10 @@ SAMPLING_WINDOW = 5 # IN SECONDS
 
 
 def worker(target, child_conn):
+    # Silence the fuzzee's noise
+    logging.captureWarnings(True)
+    logging.getLogger().setLevel(logging.CRITICAL)
+
     cov = coverage.Coverage(branch=True, cover_pylib=True)
     cov.start()
     while True:

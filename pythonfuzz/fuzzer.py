@@ -16,7 +16,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 SAMPLING_WINDOW = 5 # IN SECONDS
 
 
-def worker(target, child_conn):
+def worker(target, child_conn, close_fd_mask):
     # Silence the fuzzee's noise
     class DummyFile:
         """No-op to trash stdout away."""
@@ -24,7 +24,10 @@ def worker(target, child_conn):
             pass
     logging.captureWarnings(True)
     logging.getLogger().setLevel(logging.CRITICAL)
-    sys.stdout = DummyFile()
+    if close_fd_mask & 1:
+        sys.stdout = DummyFile()
+    if close_fd_mask & 2:
+        sys.stderr = DummyFile()
 
     cov = coverage.Coverage(branch=True, cover_pylib=True)
     cov.start()
@@ -52,13 +55,15 @@ class Fuzzer(object):
                  rss_limit_mb=2048,
                  timeout=120,
                  regression=False,
-                 max_input_size=4096):
+                 max_input_size=4096,
+                 close_fd_mask=0):
         self._target = target
         self._dirs = [] if dirs is None else dirs
         self._exact_artifact_path = exact_artifact_path
         self._rss_limit_mb = rss_limit_mb
         self._timeout = timeout
         self._regression = regression
+        self._close_fd_mask = close_fd_mask
         self._corpus = corpus.Corpus(self._dirs, max_input_size)
         self._total_executions = 0
         self._executions_in_sample = 0
@@ -94,7 +99,7 @@ class Fuzzer(object):
         logging.info("#0 READ units: {}".format(self._corpus.length))
 
         parent_conn, child_conn = mp.Pipe()
-        self._p = mp.Process(target=worker, args=(self._target, child_conn))
+        self._p = mp.Process(target=worker, args=(self._target, child_conn, self._close_fd_mask))
         self._p.start()
 
         while True:

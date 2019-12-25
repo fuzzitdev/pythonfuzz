@@ -32,7 +32,7 @@ def worker(target, child_conn, close_fd_mask):
     cov = coverage.Coverage(branch=True, cover_pylib=True)
     cov.start()
     while True:
-        buf = child_conn.recv()
+        buf = child_conn.recv_bytes()
         try:
             target(buf)
         except Exception as e:
@@ -102,9 +102,10 @@ class Fuzzer(object):
         self._p = mp.Process(target=worker, args=(self._target, child_conn, self._close_fd_mask))
         self._p.start()
 
+
         while True:
             buf = self._corpus.generate_input()
-            parent_conn.send(buf)
+            parent_conn.send_bytes(buf)
             if not parent_conn.poll(self._timeout):
                 self._p.kill()
                 logging.info("=================================================================")

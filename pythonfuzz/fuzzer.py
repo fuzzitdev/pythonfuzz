@@ -105,7 +105,7 @@ class Fuzzer(object):
             self._total_executions, log_type, self._total_coverage, self._corpus.length, execs_per_second, rss))
         return rss
 
-    def write_sample(self, prefix='crash-', buf):
+    def write_sample(self, buf, prefix='crash-'):
         m = hashlib.sha256()
         m.update(buf)
         if self._exact_artifact_path:
@@ -133,7 +133,7 @@ class Fuzzer(object):
                 self._p.kill()
                 logging.info("=================================================================")
                 logging.info("timeout reached. testcase took: {}".format(self._timeout))
-                self.write_sample(prefix='timeout-', buf)
+                self.write_sample(buf, prefix='timeout-')
                 break
 
             total_coverage = parent_conn.recv()

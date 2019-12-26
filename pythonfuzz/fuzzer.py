@@ -79,7 +79,8 @@ class Fuzzer(object):
                  timeout=120,
                  regression=False,
                  max_input_size=4096,
-                 close_fd_mask=0):
+                 close_fd_mask=0,
+                 runs=-1):
         self._target = target
         self._dirs = [] if dirs is None else dirs
         self._exact_artifact_path = exact_artifact_path
@@ -93,6 +94,7 @@ class Fuzzer(object):
         self._last_sample_time = time.time()
         self._total_coverage = 0
         self._p = None
+        self.runs = runs
 
     def log_stats(self, log_type):
         rss = (psutil.Process(self._p.pid).memory_info().rss + psutil.Process(os.getpid()).memory_info().rss) / 1024 / 1024
@@ -125,8 +127,12 @@ class Fuzzer(object):
         self._p = mp.Process(target=worker, args=(self._target, child_conn, self._close_fd_mask))
         self._p.start()
 
-
         while True:
+            if self.runs != -1 and self._total_executions >= self.runs:
+                self._p.terminate()
+                logging.info('did %d runs, stopping now.', self.runs)
+                break
+
             buf = self._corpus.generate_input()
             parent_conn.send_bytes(buf)
             if not parent_conn.poll(self._timeout):

@@ -25,7 +25,7 @@ if coverage.version.version_info <= (5, ):
     # See the benchmarks here:
     #   - https://github.com/fuzzitdev/pythonfuzz/issues/9
     @functools.lru_cache(None)
-    def abs_file(path):
+    def abs_file_cache(path):
         """Return the absolute normalized form of `path`."""
         try:
             path = os.path.realpath(path)

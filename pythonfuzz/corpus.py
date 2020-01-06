@@ -199,6 +199,7 @@ class Corpus(object):
                     v = struct.pack('>H', v)
                 else:
                     v = struct.pack('<H', v)
+                v = bytearray(v)
                 res[pos] = numpy.uint8(res[pos] + v[0])
                 res[pos+1] = numpy.uint8(res[pos] + v[1])
             elif x == 9:
@@ -214,6 +215,7 @@ class Corpus(object):
                     v = struct.pack('>I', v)
                 else:
                     v = struct.pack('<I', v)
+                v = bytearray(v)
                 for k in range(4):
                     res[pos+k] = numpy.uint8(res[pos+k] + v[k])
             elif x == 10:
@@ -229,6 +231,7 @@ class Corpus(object):
                     v = struct.pack('>Q', v)
                 else:
                     v = struct.pack('<Q', v)
+                v = bytearray(v)
                 for k in range(8):
                     res[pos+k] = numpy.uint8(res[pos+k] + v[k])
             elif x == 11:
@@ -249,6 +252,7 @@ class Corpus(object):
                     v = struct.pack('>H', v)
                 else:
                     v = struct.pack('<H', v)
+                v = bytearray(v)
                 res[pos] = numpy.uint8(v[0])
                 res[pos+1] = numpy.uint8(v[1])
             elif x == 13:
@@ -262,6 +266,7 @@ class Corpus(object):
                     v = struct.pack('>I', v)
                 else:
                     v = struct.pack('<I', v)
+                v = bytearray(v)
                 for k in range(4):
                     res[pos+k] = numpy.uint8(v[k])
             elif x == 14:

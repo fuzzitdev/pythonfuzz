@@ -16,6 +16,13 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 SAMPLING_WINDOW = 5 # IN SECONDS
 
+try:
+    lru_cache = functools.lru_cache
+except:
+    import functools32
+    lru_cache = functools32.lru_cache
+
+
 if coverage.version.version_info <= (5, ):
     # Since we're using an old version of coverage.py,
     # we're monkey patching it a bit to improve the performances.
@@ -24,7 +31,7 @@ if coverage.version.version_info <= (5, ):
     # function triggers a lot of syscalls.
     # See the benchmarks here:
     #   - https://github.com/fuzzitdev/pythonfuzz/issues/9
-    @functools.lru_cache(None)
+    @lru_cache(None)
     def abs_file_cache(path):
         """Return the absolute normalized form of `path`."""
         try:
@@ -59,6 +66,7 @@ def worker(target, child_conn, close_fd_mask):
         try:
             target(buf)
         except Exception as e:
+            print("Exception: %r\n" % (e,))
             logging.exception(e)
             child_conn.send(e)
             break
@@ -114,11 +122,14 @@ class Fuzzer(object):
             crash_path = self._exact_artifact_path
         else:
             crash_path = prefix + m.hexdigest()
+        logging.info('sample written to {}'.format(crash_path))
+        if len(buf) < 200:
+            try:
+                logging.info('sample = {}'.format(buf.hex()))
+            except AttributeError:
+                logging.info('sample = {!r}'.format(buf))
         with open(crash_path, 'wb') as f:
             f.write(buf)
-        logging.info('sample was written to {}'.format(crash_path))
-        if len(buf) < 200:
-            logging.info('sample = {}'.format(buf.hex()))
 
     def start(self):
         logging.info("#0 READ units: {}".format(self._corpus.length))
@@ -134,7 +145,7 @@ class Fuzzer(object):
                 break
 
             buf = self._corpus.generate_input()
-            parent_conn.send_bytes(buf)
+            parent_conn.send_bytes(bytes(buf))
             if not parent_conn.poll(self._timeout):
                 self._p.kill()
                 logging.info("=================================================================")

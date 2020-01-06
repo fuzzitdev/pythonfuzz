@@ -15,7 +15,7 @@ setuptools.setup(
     install_requires=[
         'coverage==4.5.4',
         'psutil==5.6.3',
-        'numpy==1.17.3',
+        'numpy<1.17'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -23,6 +23,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Testing"
     ],
-    python_requires='>=3.5.3',
     packages=setuptools.find_packages('.', exclude=("examples",))
 )

@@ -1,3 +1,14 @@
+"""
+Basic reader for libfuzzer/AFL style dictionaries.
+
+See documentation at:
+    https://llvm.org/docs/LibFuzzer.html#dictionaries
+    https://github.com/google/AFL/blob/master/dictionaries/README.dictionaries
+
+For our use, we only support reading the content of the dictionary values.
+"""
+
+import codecs
 import random
 import re
 import os
@@ -18,7 +29,10 @@ class Dictionary:
                     continue
                 word = self.line_re.search(line)
                 if word:
-                    _dict.add(word.group(1))
+                    # Decode any escaped characters, giving us a bytes object
+                    value = word.group(1)
+                    (value, _) = codecs.escape_decode(value)
+                    _dict.add(value)
         self._dict = list(_dict)
 
     def get_word(self):

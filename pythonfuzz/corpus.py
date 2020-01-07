@@ -5,7 +5,7 @@ import random
 import struct
 import hashlib
 
-from . import dictionnary
+from . import dictionary
 
 
 INTERESTING8 = [-128, -1, 0, 1, 16, 32, 64, 100, 127]
@@ -355,7 +355,7 @@ class Corpus(object):
 
     def __init__(self, dirs=None, max_input_size=4096, mutators_filter=None, dict_path=None):
         self._inputs = []
-        self._dict = dictionnary.Dictionary(dict_path)
+        self._dict = dictionary.Dictionary(dict_path)
         self._max_input_size = max_input_size
         self._dirs = dirs if dirs else []
         for i, path in enumerate(dirs):

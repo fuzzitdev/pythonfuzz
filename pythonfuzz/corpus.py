@@ -347,6 +347,23 @@ class MutatorReplaceDigit(Mutator):
         return res
 
 
+@register_mutator
+class MutatorDictionaryWordInsert(Mutator):
+    name = 'Insert a word at a random position'
+    types = set(['text', 'dictionary'])
+
+    def mutate(self, res):
+        word = self.corpus._dict.get_word()
+        if not word:
+            return None
+        pos = self._rand(len(res) + 1)
+        for _ in word:
+            res.append(0)
+        self.copy(res, res, pos, pos+len(word))
+        for k in range(len(word)):
+            res[pos+k] = ord(word[k])
+
+
 class CorpusError(Exception):
     pass
 
@@ -355,7 +372,9 @@ class Corpus(object):
 
     def __init__(self, dirs=None, max_input_size=4096, mutators_filter=None, dict_path=None):
         self._inputs = []
-        self._dict = dictionary.Dictionary(dict_path)
+        self._dict = dictionary.Dictionary()
+        if dict_path:
+            self._dict.load(dict_path)
         self._max_input_size = max_input_size
         self._dirs = dirs if dirs else []
         for i, path in enumerate(dirs):
@@ -460,6 +479,7 @@ class Corpus(object):
         res = buf[:]
         nm = self._rand_exp()
         for i in range(nm):
+
             # Select a mutator from those we can apply
             # We'll try up to 20 times, but if we don't find a
             # suitable mutator after that, we'll just give up.
@@ -470,7 +490,8 @@ class Corpus(object):
                 newres = mutator.mutate(res)
                 if newres is not None:
                     break
-            res = newres
+            if newres is not None:
+                res = newres
 
         if len(res) > self._max_input_size:
             res = res[:self._max_input_size]

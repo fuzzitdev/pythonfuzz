@@ -158,7 +158,7 @@ class Fuzzer(object):
             buf = self._corpus.generate_input()
             parent_conn.send_bytes(bytes(buf))
             if not parent_conn.poll(self._timeout):
-                self._p.kill()
+                self._p.terminate()
                 logging.info("=================================================================")
                 logging.info("timeout reached. testcase took: {}".format(self._timeout))
                 self.write_sample(buf, prefix='timeout-')

@@ -78,7 +78,7 @@ class Mutator(object):
 @register_mutator
 class MutatorRemoveRange(Mutator):
     name = 'Remove a range of bytes'
-    types = set(['byte'])
+    types = set(['byte', 'remove'])
 
     def mutate(self, res):
         if len(res) < 2:
@@ -95,7 +95,7 @@ class MutatorRemoveRange(Mutator):
 @register_mutator
 class MutatorInsertBytes(Mutator):
     name = 'Insert a range of random bytes'
-    types = set(['byte'])
+    types = set(['byte', 'insert'])
 
     def mutate(self, res):
         pos = self._rand(len(res) + 1)
@@ -111,7 +111,7 @@ class MutatorInsertBytes(Mutator):
 @register_mutator
 class MutatorDuplicateBytes(Mutator):
     name = 'Duplicate a range of bytes'
-    types = set(['byte'])
+    types = set(['byte', 'duplicate'])
 
     def mutate(self, res):
         if len(res) <= 1:
@@ -134,7 +134,7 @@ class MutatorDuplicateBytes(Mutator):
 @register_mutator
 class MutatorCopyBytes(Mutator):
     name = 'Copy a range of bytes'
-    types = set(['byte'])
+    types = set(['byte', 'copy'])
 
     def mutate(self, res):
         if len(res) <= 1:
@@ -151,7 +151,7 @@ class MutatorCopyBytes(Mutator):
 @register_mutator
 class MutatorBitFlip(Mutator):
     name = 'Bit flip'
-    types = set(['bit'])
+    types = set(['bit', 'replace'])
 
     def mutate(self, res):
         if len(res) == 0:
@@ -164,7 +164,7 @@ class MutatorBitFlip(Mutator):
 @register_mutator
 class MutatorRandomiseByte(Mutator):
     name = 'Set a byte to a random value.'
-    types = set(['byte'])
+    types = set(['byte', 'replace'])
 
     def mutate(self, res):
         if len(res) == 0:
@@ -177,7 +177,7 @@ class MutatorRandomiseByte(Mutator):
 @register_mutator
 class MutatorSwapBytes(Mutator):
     name = 'Swap 2 bytes'
-    types = set(['byte'])
+    types = set(['byte', 'swap'])
 
     def mutate(self, res):
         if len(res) <= 1:
@@ -193,7 +193,7 @@ class MutatorSwapBytes(Mutator):
 @register_mutator
 class MutatorAddSubByte(Mutator):
     name = 'Add/subtract from a byte'
-    types = set(['byte'])
+    types = set(['byte', 'addsub'])
 
     def mutate(self, res):
         if len(res) == 0:
@@ -210,7 +210,7 @@ class MutatorAddSubByte(Mutator):
 @register_mutator
 class MutatorAddSubShort(Mutator):
     name = 'Add/subtract from a uint16'
-    types = set(['short'])
+    types = set(['short', 'addsub'])
 
     def mutate(self, res):
         if len(res) < 2:
@@ -232,7 +232,7 @@ class MutatorAddSubShort(Mutator):
 @register_mutator
 class MutatorAddSubLong(Mutator):
     name = 'Add/subtract from a uint32'
-    types = set(['long'])
+    types = set(['long', 'addsub'])
 
     def mutate(self, res):
         if len(res) < 4:
@@ -254,7 +254,7 @@ class MutatorAddSubLong(Mutator):
 @register_mutator
 class MutatorAddSubLongLong(Mutator):
     name = 'Add/subtract from a uint64'
-    types = set(['longlong'])
+    types = set(['longlong', 'addsub'])
 
     def mutate(self, res):
         if len(res) < 8:
@@ -276,7 +276,7 @@ class MutatorAddSubLongLong(Mutator):
 @register_mutator
 class MutatorReplaceByte(Mutator):
     name = 'Replace a byte with an interesting value'
-    types = set(['byte'])
+    types = set(['byte', 'replace'])
 
     def mutate(self, res):
         if len(res) == 0:
@@ -289,7 +289,7 @@ class MutatorReplaceByte(Mutator):
 @register_mutator
 class MutatorReplaceShort(Mutator):
     name = 'Replace an uint16 with an interesting value'
-    types = set(['short'])
+    types = set(['short', 'replace'])
 
     def mutate(self, res):
         if len(res) < 2:
@@ -309,7 +309,7 @@ class MutatorReplaceShort(Mutator):
 @register_mutator
 class MutatorReplaceLong(Mutator):
     name = 'Replace an uint32 with an interesting value'
-    types = set(['long'])
+    types = set(['long', 'replace'])
 
     def mutate(self, res):
         if len(res) < 4:
@@ -329,7 +329,7 @@ class MutatorReplaceLong(Mutator):
 @register_mutator
 class MutatorReplaceDigit(Mutator):
     name = 'Replace an ascii digit with another digit'
-    types = set(['byte', 'ascii'])
+    types = set(['byte', 'ascii', 'replace'])
 
     def mutate(self, res):
         digits = []
@@ -362,6 +362,19 @@ class MutatorDictionaryWordInsert(Mutator):
         self.copy(res, res, pos, pos+len(word))
         for k in range(len(word)):
             res[pos+k] = word[k]
+        return res
+
+
+@register_mutator
+class MutatorDictionaryWordAppend(Mutator):
+    name = 'Append a word'
+    types = set(['dictionary', 'append'])
+
+    def mutate(self, res):
+        word = self.corpus._dict.get_word()
+        if not word:
+            return None
+        res.extend(word)
         return res
 
 

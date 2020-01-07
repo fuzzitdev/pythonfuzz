@@ -361,7 +361,8 @@ class MutatorDictionaryWordInsert(Mutator):
             res.append(0)
         self.copy(res, res, pos, pos+len(word))
         for k in range(len(word)):
-            res[pos+k] = ord(word[k])
+            res[pos+k] = word[k]
+        return res
 
 
 class CorpusError(Exception):

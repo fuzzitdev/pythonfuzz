@@ -88,7 +88,8 @@ class Fuzzer(object):
                  regression=False,
                  max_input_size=4096,
                  close_fd_mask=0,
-                 runs=-1):
+                 runs=-1,
+                 mutators_filter=None):
         self._target = target
         self._dirs = [] if dirs is None else dirs
         self._exact_artifact_path = exact_artifact_path
@@ -96,13 +97,22 @@ class Fuzzer(object):
         self._timeout = timeout
         self._regression = regression
         self._close_fd_mask = close_fd_mask
-        self._corpus = corpus.Corpus(self._dirs, max_input_size)
+        self._corpus = corpus.Corpus(self._dirs, max_input_size, mutators_filter)
         self._total_executions = 0
         self._executions_in_sample = 0
         self._last_sample_time = time.time()
         self._total_coverage = 0
         self._p = None
         self.runs = runs
+
+    def help_mutators(self):
+        print("Mutators currently available (and their types):")
+        active_mutators = [mutator.__class__ for mutator in self._corpus.mutators]
+        for mutator in corpus.mutator_classes:
+            active = mutator in active_mutators
+            indicator = '-' if not active else ' '
+            print("  {}{:<60s} [{}]".format(indicator, mutator.name, ', '.join(sorted(mutator.types))))
+        print("\nMutators prefixed by '-' are currently disabled.")
 
     def log_stats(self, log_type):
         rss = (psutil.Process(self._p.pid).memory_info().rss + psutil.Process(os.getpid()).memory_info().rss) / 1024 / 1024

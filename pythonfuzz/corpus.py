@@ -351,7 +351,7 @@ class CorpusError(Exception):
 
 class Corpus(object):
 
-    def __init__(self, dirs=None, max_input_size=4096):
+    def __init__(self, dirs=None, max_input_size=4096, mutators_filter=None):
         self._inputs = []
         self._max_input_size = max_input_size
         self._dirs = dirs if dirs else []
@@ -370,15 +370,36 @@ class Corpus(object):
         self._seed_idx = 0
         self._save_corpus = dirs and os.path.isdir(dirs[0])
 
+        # Work out what we'll filter
+        filters = mutators_filter.split(' ')
+        negative_filters = [f[1:] for f in filters if f and f[0] == '!']
+        required_filters = [f for f in filters if f and f[0] != '!']
+
+        def acceptable(cls):
+            # No filters => everything's fine!
+            if mutators_filter is None:
+                return True
+
+            # First check that the required mutator types are set
+            for f in required_filters:
+                if f not in cls.types:
+                    return False
+            # Now remove any that are not allowed
+            for f in negative_filters:
+                if f in cls.types:
+                    return False
+
+            return True
+
         # Construct an object for each mutator we can use
-        self._mutators = [cls(self) for cls in mutator_classes]
-        if not self._mutators:
+        self.mutators = [cls(self) for cls in mutator_classes if acceptable(cls)]
+        if not self.mutators:
             raise CorpusError("No mutators are available")
 
     def __repr__(self):
         return "<{}(corpus of {}, %i mutators)>".format(self.__class__.__name__,
                                                         len(self._inputs),
-                                                        len(self._mutators))
+                                                        len(self.mutators))
 
     def _add_file(self, path):
         with open(path, 'rb') as f:
@@ -439,8 +460,8 @@ class Corpus(object):
 
             # Select a mutator from those we can apply
             while True:
-                x = self._rand(len(self._mutators))
-                mutator = self._mutators[x]
+                x = self._rand(len(self.mutators))
+                mutator = self.mutators[x]
 
                 newres = mutator.mutate(res)
                 if newres is not None:

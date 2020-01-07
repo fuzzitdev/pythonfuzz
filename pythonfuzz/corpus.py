@@ -459,7 +459,9 @@ class Corpus(object):
         for i in range(nm):
 
             # Select a mutator from those we can apply
-            while True:
+            # We'll try up to 20 times, but if we don't find a
+            # suitable mutator after that, we'll just give up.
+            for n in range(20):
                 x = self._rand(len(self.mutators))
                 mutator = self.mutators[x]
 

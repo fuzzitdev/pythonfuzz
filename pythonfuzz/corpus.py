@@ -407,7 +407,7 @@ class Corpus(object):
         self._save_corpus = dirs and os.path.isdir(dirs[0])
 
         # Work out what we'll filter
-        filters = mutators_filter.split(' ')
+        filters = mutators_filter.split(' ') if mutators_filter else []
         negative_filters = [f[1:] for f in filters if f and f[0] == '!']
         required_filters = [f for f in filters if f and f[0] != '!']
 

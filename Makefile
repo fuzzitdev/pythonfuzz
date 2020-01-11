@@ -24,7 +24,8 @@ ACTIVATE = source venv/${PYTHON_TOOL}/bin/activate
 
 .PHONY: tests venv
 
-TEST_MODULES = ${patsubst tests/%.py,%,$(wildcard tests/test_*.py)}
+UNITTEST_MODULES = ${patsubst tests/%.py,%,$(wildcard tests/unittest_*.py)}
+INTTEST_MODULES = ${patsubst tests/%.py,%,$(wildcard tests/test_*.py)}
 
 ifeq (${NOCOLOUR},)
 COL_NOTICE = "\\e[35m"
@@ -51,14 +52,17 @@ test_level_system: test_level_integration systemtests
 # Unit tests test individual parse of a small unit.
 unittests: test_testable
 	${NOTICE} "Running unit tests"
-	${GOOD} "Unit tests passed (we don't have any yet)"
+	@# Note: We cd into the tests directory, so that we are testing the installed version, not
+	@# 		the version in the repository.
+	${ACTIVATE} && cd tests && python -munittest -v ${UNITTEST_MODULES}
+	${GOOD} "Unit tests passed"
 
 # Integration tests check the integration of those units.
 integrationtests: test_testable
 	${NOTICE} "Running integration tests"
 	@# Note: We cd into the tests directory, so that we are testing the installed version, not
 	@# 		the version in the repository.
-	${ACTIVATE} && cd tests && python -munittest -v ${TEST_MODULES}
+	${ACTIVATE} && cd tests && python -munittest -v ${INTTEST_MODULES}
 	${GOOD} "Integration tests passed"
 
 # System tests check that the way that a user might use it works.

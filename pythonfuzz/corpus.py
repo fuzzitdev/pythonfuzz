@@ -49,22 +49,27 @@ class Mutator(object):
             return 0
         return random.randint(0, n-1)
 
-    @staticmethod
-    def _choose_len(n):
-        x = Corpus._rand(100)
+    @classmethod
+    def _choose_len(cls, n):
+        x = cls._rand(100)
         if x < 90:
-            return Corpus._rand(min(8, n)) + 1
+            return cls._rand(min(8, n)) + 1
         elif x < 99:
-            return Corpus._rand(min(32, n)) + 1
+            return cls._rand(min(32, n)) + 1
         else:
-            return Corpus._rand(n) + 1
+            return cls._rand(n) + 1
 
     @staticmethod
-    def copy(src, dst, start_source, start_dst, end_source=None, end_dst=None):
-        end_source = len(src) if end_source is None else end_source
+    def copy(dst, src, start_dst, start_src, end_dst=None, end_src=None):
+        """
+        Copy of content from one slice of a source object to a destination object.
+
+        dst and src may be the same object.
+        """
+        end_src = len(src) if end_src is None else end_src
         end_dst = len(dst) if end_dst is None else end_dst
-        byte_to_copy = min(end_source-start_source, end_dst-start_dst)
-        src[start_source:start_source+byte_to_copy] = dst[start_dst:start_dst+byte_to_copy]
+        byte_to_copy = min(end_src-start_src, end_dst-start_dst)
+        dst[start_dst:start_dst+byte_to_copy] = src[start_src:start_src+byte_to_copy]
 
     def mutate(self, res):
         """
@@ -87,9 +92,10 @@ class MutatorRemoveRange(Mutator):
             return None
 
         pos0 = self._rand(len(res))
-        pos1 = pos0 + self._choose_len(len(res) - pos0)
-        self.copy(res, res, pos1, pos0)
-        return res[:len(res) - (pos1-pos0)]
+        num_to_remove = self._choose_len(len(res) - pos0)
+        pos1 = pos0 + num_to_remove
+        self.copy(res, res, pos0, pos1)
+        return res[:len(res) - num_to_remove]
 
 
 @register_mutator
@@ -102,7 +108,7 @@ class MutatorInsertBytes(Mutator):
         n = self._choose_len(10)
         for k in range(n):
             res.append(0)
-        self.copy(res, res, pos, pos+n)
+        self.copy(res, res, pos+n, pos)
         for k in range(n):
             res[pos+k] = self._rand(256)
         return res
@@ -121,11 +127,10 @@ class MutatorDuplicateBytes(Mutator):
         while src == dst:
             dst = self._rand(len(res))
         n = self._choose_len(len(res) - src)
-        tmp = bytearray(n)
-        self.copy(res, tmp, src, 0)
+        tmp = bytearray(res[src:src+n])
         for k in range(n):
             res.append(0)
-        self.copy(res, res, dst, dst+n)
+        self.copy(res, res, dst+n, dst)
         for k in range(n):
             res[dst+k] = tmp[k]
         return res
@@ -133,6 +138,7 @@ class MutatorDuplicateBytes(Mutator):
 
 @register_mutator
 class MutatorCopyBytes(Mutator):
+    # FIXME: Check how this diffs from DuplicateBytes
     name = 'Copy a range of bytes'
     types = set(['byte', 'copy'])
 
@@ -170,6 +176,7 @@ class MutatorRandomiseByte(Mutator):
         if len(res) == 0:
             return None
         pos = self._rand(len(res))
+        # We use rand(255) + 1 so that there is no `^ 0` applied to the byte; it always changes.
         res[pos] ^= self._rand(255) + 1
         return res
 
@@ -492,6 +499,7 @@ class Corpus(object):
     def mutate(self, buf):
         res = buf[:]
         nm = self._rand_exp()
+        #print("Start with {}".format(res))
         for i in range(nm):
 
             # Select a mutator from those we can apply
@@ -501,6 +509,7 @@ class Corpus(object):
                 x = self._rand(len(self.mutators))
                 mutator = self.mutators[x]
 
+                #print("Mutate with {}".format(mutator.__class__.__name__))
                 newres = mutator.mutate(res)
                 if newres is not None:
                     break

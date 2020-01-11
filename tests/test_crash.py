@@ -1,6 +1,7 @@
+import io
+import os
 import unittest
 import zipfile
-import io
 
 try:
     from unittest.mock import patch
@@ -28,3 +29,10 @@ class TestFindCrash(unittest.TestCase):
         with patch('logging.Logger.info') as mock:
             pythonfuzz.fuzzer.Fuzzer(fuzz).start()
             self.assertTrue(mock.called_once)
+
+            # Check that we created a crash file
+            # (this is the hash of an empty string, because we know that the first call is with an empty string)
+            self.assertTrue(os.path.exists('crash-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'))
+
+            # Clean up after ourselves
+            os.remove('crash-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')

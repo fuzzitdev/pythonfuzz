@@ -1,0 +1,2 @@
+# unittest.mock is present in 3.3 and higher; the mock library provides a backport
+mock==3.0.5 ; python_version < '3.3'

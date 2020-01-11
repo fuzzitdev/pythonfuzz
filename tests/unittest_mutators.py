@@ -1,3 +1,12 @@
+"""
+Test the mutators operate as desired.
+
+SUT:    Corpus
+Area:   Mutators
+Class:  Functional
+Type:   Unit test
+"""
+
 import unittest
 
 try:

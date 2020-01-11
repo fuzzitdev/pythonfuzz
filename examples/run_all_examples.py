@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 """
 Run all the examples and collect the timings and results.
+
+SUT:    Invocation
+Area:   Examples run
+Class:  Functional
+Type:   System test
 """
 
 import argparse

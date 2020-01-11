@@ -1,3 +1,12 @@
+"""
+Test the fuzzing terminates when a fault is found.
+
+SUT:    Fuzzer
+Area:   Fault finding
+Class:  Functional
+Type:   Integration test
+"""
+
 import io
 import os
 import unittest

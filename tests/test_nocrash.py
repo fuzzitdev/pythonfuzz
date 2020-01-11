@@ -1,3 +1,12 @@
+"""
+Test the fuzzing terminates when no faults found, at a run limit.
+
+SUT:    Fuzzer
+Area:   Non-fault operation
+Class:  Functional
+Type:   Integration test
+"""
+
 import unittest
 
 try:

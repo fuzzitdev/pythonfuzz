@@ -359,7 +359,7 @@ class MutatorDictionaryWordInsert(Mutator):
         pos = self._rand(len(res) + 1)
         for _ in word:
             res.append(0)
-        self.copy(res, res, pos, pos+len(word))
+        self.copy(res, res, pos+len(word), pos)
         for k in range(len(word)):
             res[pos+k] = word[k]
         return res
@@ -433,7 +433,7 @@ class Corpus(object):
             raise CorpusError("No mutators are available")
 
     def __repr__(self):
-        return "<{}(corpus of {}, %i mutators)>".format(self.__class__.__name__,
+        return "<{}(corpus of {}, {} mutators)>".format(self.__class__.__name__,
                                                         len(self._inputs),
                                                         len(self.mutators))
 

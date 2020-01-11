@@ -1,7 +1,13 @@
-.idea
+# Files created by tests
 venv
+*.pyc
 __pycache__
+
+# Files created by general usage
 crash-*
+timeout-*
+
+# Distribution files
 dist/
 build/
 pythonfuzz.egg-info/

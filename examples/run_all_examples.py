@@ -169,7 +169,7 @@ def main():
     any_failed = False
     for example in find_examples():
         print("Example: {}".format(example.name))
-        result = example.run(runs=args.runs)
+        result = example.run(python=sys.executable, runs=args.runs)
         result.show(indent='  ')
         if not args.keep:
             if result.fail_file:

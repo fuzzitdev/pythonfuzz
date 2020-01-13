@@ -1,12 +1,22 @@
 import unittest
-import zipfile
-import io
-from unittest.mock import patch
 
-import pythonfuzz
+try:
+    from unittest.mock import patch
+except ImportError:
+    # Python 2 backport of mock
+    from mock import patch
+
+import pythonfuzz.fuzzer
+
 
 class TestFindCrash(unittest.TestCase):
     def test_find_crash(self):
+        """
+        Tests that when no Exception occurs in the fuzz function, we exit without error.
+
+        Detects the exception implicitly by the fact that a logger call was made with
+        particular text.
+        """
         def fuzz(buf):
             return True
 

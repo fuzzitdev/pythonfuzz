@@ -1,7 +1,7 @@
 # Common User Targets:
 #
 #	make tests
-#		- Sxecute the tests
+#		- Execute the tests
 #
 #	make shell
 #		- Set up the environment and drop to a shell (re-uses existing shells if they
@@ -40,12 +40,34 @@ NOTICE = @notice() { printf "\n${COL_NOTICE}+++ %s${COL_RESET}\n" "$$@"; } && no
 GOOD = @notice() { printf "\n${COL_GOOD}+++ %s${COL_RESET}\n" "$$@"; } && notice
 
 
-tests: test_testable
-	${NOTICE} "Running tests"
+tests: test_level_system
+	${GOOD} "All tests passed"
+
+# 'test_level_*' targets run all the tests up to that level
+test_level_unittests: unittests
+test_level_integration: test_level_unittests integrationtests
+test_level_system: test_level_integration systemtests
+
+# Unit tests test individual parse of a small unit.
+unittests: test_testable
+	${NOTICE} "Running unit tests"
+	${GOOD} "Unit tests passed (we don't have any yet)"
+
+# Integration tests check the integration of those units.
+integrationtests: test_testable
+	${NOTICE} "Running integration tests"
 	@# Note: We cd into the tests directory, so that we are testing the installed version, not
 	@# 		the version in the repository.
 	${ACTIVATE} && cd tests && python -munittest -v ${TEST_MODULES}
-	${GOOD} "Tests passed"
+	${GOOD} "Integration tests passed"
+
+# System tests check that the way that a user might use it works.
+systemtests: test_testable
+	${NOTICE} "Running system tests"
+	@# We only run 1000 runs; just enough that we get to see that it's running the tests.
+	${ACTIVATE} && examples/run_all_examples.py --runs 1000
+	${GOOD} "System tests passed"
+
 
 venv: venv/successful-${PYTHON_TOOL}
 

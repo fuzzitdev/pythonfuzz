@@ -17,15 +17,22 @@ class PythonFuzz(object):
                             help='run the fuzzer through set of files for regression or reproduction')
         parser.add_argument('--rss-limit-mb', type=int, default=2048, help='Memory usage in MB')
         parser.add_argument('--max-input-size', type=int, default=4096, help='Max input size in bytes')
+        parser.add_argument('--dict', type=str, help='dictionary file')
         parser.add_argument('--close-fd-mask', type=int, default=0, help='Indicate output streams to close at startup')
         parser.add_argument('--runs', type=int, default=-1, help='Number of individual test runs, -1 (the default) to run indefinitely.')
+        parser.add_argument('--help-mutators', action='store_true', help='Display help on the mutators')
+        parser.add_argument('--mutator-filter', type=str, default=None, help='Filter for mutator types to use; prefix with ! to disable')
         parser.add_argument('--timeout', type=int, default=30,
                             help='If input takes longer then this timeout the process is treated as failure case')
         args = parser.parse_args()
         f = fuzzer.Fuzzer(self.function, args.dirs, args.exact_artifact_path,
                           args.rss_limit_mb, args.timeout, args.regression, args.max_input_size,
-                          args.close_fd_mask, args.runs)
-        f.start()
+                          args.close_fd_mask, args.runs, args.mutator_filter, args.dict)
+
+        if args.help_mutators:
+            f.help_mutators()
+        else:
+            f.start()
 
 
 if __name__ == '__main__':

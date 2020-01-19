@@ -16,6 +16,13 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 SAMPLING_WINDOW = 5 # IN SECONDS
 
+try:
+    lru_cache = functools.lru_cache
+except:
+    import functools32
+    lru_cache = functools32.lru_cache
+
+
 if coverage.version.version_info <= (5, ):
     # Since we're using an old version of coverage.py,
     # we're monkey patching it a bit to improve the performances.
@@ -24,7 +31,7 @@ if coverage.version.version_info <= (5, ):
     # function triggers a lot of syscalls.
     # See the benchmarks here:
     #   - https://github.com/fuzzitdev/pythonfuzz/issues/9
-    @functools.lru_cache(None)
+    @lru_cache(None)
     def abs_file_cache(path):
         """Return the absolute normalized form of `path`."""
         try:
@@ -59,6 +66,7 @@ def worker(target, child_conn, close_fd_mask):
         try:
             target(buf)
         except Exception as e:
+            print("Exception: %r\n" % (e,))
             logging.exception(e)
             child_conn.send(e)
             break
@@ -80,7 +88,9 @@ class Fuzzer(object):
                  regression=False,
                  max_input_size=4096,
                  close_fd_mask=0,
-                 runs=-1):
+                 runs=-1,
+                 mutators_filter=None,
+                 dict_path=None):
         self._target = target
         self._dirs = [] if dirs is None else dirs
         self._exact_artifact_path = exact_artifact_path
@@ -88,13 +98,22 @@ class Fuzzer(object):
         self._timeout = timeout
         self._regression = regression
         self._close_fd_mask = close_fd_mask
-        self._corpus = corpus.Corpus(self._dirs, max_input_size)
+        self._corpus = corpus.Corpus(self._dirs, max_input_size, mutators_filter, dict_path)
         self._total_executions = 0
         self._executions_in_sample = 0
         self._last_sample_time = time.time()
         self._total_coverage = 0
         self._p = None
         self.runs = runs
+
+    def help_mutators(self):
+        print("Mutators currently available (and their types):")
+        active_mutators = [mutator.__class__ for mutator in self._corpus.mutators]
+        for mutator in corpus.mutator_classes:
+            active = mutator in active_mutators
+            indicator = '-' if not active else ' '
+            print("  {}{:<60s} [{}]".format(indicator, mutator.name, ', '.join(sorted(mutator.types))))
+        print("\nMutators prefixed by '-' are currently disabled.")
 
     def log_stats(self, log_type):
         rss = (psutil.Process(self._p.pid).memory_info().rss + psutil.Process(os.getpid()).memory_info().rss) / 1024 / 1024
@@ -114,11 +133,14 @@ class Fuzzer(object):
             crash_path = self._exact_artifact_path
         else:
             crash_path = prefix + m.hexdigest()
+        logging.info('sample written to {}'.format(crash_path))
+        if len(buf) < 200:
+            try:
+                logging.info('sample = {}'.format(buf.hex()))
+            except AttributeError:
+                logging.info('sample = {!r}'.format(buf))
         with open(crash_path, 'wb') as f:
             f.write(buf)
-        logging.info('sample was written to {}'.format(crash_path))
-        if len(buf) < 200:
-            logging.info('sample = {}'.format(buf.hex()))
 
     def start(self):
         logging.info("#0 READ units: {}".format(self._corpus.length))
@@ -134,9 +156,9 @@ class Fuzzer(object):
                 break
 
             buf = self._corpus.generate_input()
-            parent_conn.send_bytes(buf)
+            parent_conn.send_bytes(bytes(buf))
             if not parent_conn.poll(self._timeout):
-                self._p.kill()
+                self._p.terminate()
                 logging.info("=================================================================")
                 logging.info("timeout reached. testcase took: {}".format(self._timeout))
                 self.write_sample(buf, prefix='timeout-')
@@ -151,9 +173,9 @@ class Fuzzer(object):
             self._executions_in_sample += 1
             rss = 0
             if total_coverage > self._total_coverage:
-                rss = self.log_stats("NEW")
                 self._total_coverage = total_coverage
                 self._corpus.put(buf)
+                rss = self.log_stats("NEW")
             else:
                 if (time.time() - self._last_sample_time) > SAMPLING_WINDOW:
                     rss = self.log_stats('PULSE')

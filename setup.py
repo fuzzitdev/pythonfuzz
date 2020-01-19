@@ -13,9 +13,12 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/fuzzitdev/pythonfuzz",
     install_requires=[
-        'coverage==4.5.4',
-        'psutil==5.6.3',
-        'numpy==1.17.3',
+        # WARNING: Keep these values in line with those in requirements.txt
+        "coverage==4.5.4",
+        "psutil==5.6.3",
+        "numpy==1.16.6; python_version < '3'",
+        "numpy==1.17.3; python_version >= '3'",
+        "functools32==3.2.3.post2; python_version < '3'",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -23,6 +26,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Testing"
     ],
-    python_requires='>=3.5.3',
+    python_requires='~=2.7, ~=3.5.3',
     packages=setuptools.find_packages('.', exclude=("examples",))
 )

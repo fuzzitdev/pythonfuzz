@@ -110,5 +110,6 @@ any unnecessary work is done.
 ## Trophies
 
 * [python built-in HTMLParser - unhandled exception](https://bugs.python.org/msg355287)
+* [CleverCSV - unhandled exceptions](https://github.com/alan-turing-institute/CleverCSV/issues/7)
 
 **Feel free to add bugs that you found with pythonfuzz to this list via pull-request**

@@ -5,11 +5,10 @@ import sys
 import psutil
 import hashlib
 import logging
-import coverage
 import functools
 import multiprocessing as mp
 
-from pythonfuzz import corpus
+from pythonfuzz import corpus, tracer
 
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 logging.getLogger().setLevel(logging.DEBUG)
@@ -21,29 +20,6 @@ try:
 except:
     import functools32
     lru_cache = functools32.lru_cache
-
-
-if coverage.version.version_info <= (5, ):
-    # Since we're using an old version of coverage.py,
-    # we're monkey patching it a bit to improve the performances.
-
-    # Using memoization here gives +50% in performances, since this
-    # function triggers a lot of syscalls.
-    # See the benchmarks here:
-    #   - https://github.com/fuzzitdev/pythonfuzz/issues/9
-    @lru_cache(None)
-    def abs_file_cache(path):
-        """Return the absolute normalized form of `path`."""
-        try:
-            path = os.path.realpath(path)
-        except UnicodeError:
-            pass
-        path = os.path.abspath(path)
-        path = coverage.files.actual_path(path)
-        path = coverage.files.unicode_filename(path)
-        return path
-
-    coverage.files.abs_file = abs_file_cache
 
 
 def worker(target, child_conn, close_fd_mask):
@@ -59,8 +35,7 @@ def worker(target, child_conn, close_fd_mask):
     if close_fd_mask & 2:
         sys.stderr = DummyFile()
 
-    cov = coverage.Coverage(branch=True, cover_pylib=True)
-    cov.start()
+    sys.settrace(tracer.trace)
     while True:
         buf = child_conn.recv_bytes()
         try:
@@ -71,11 +46,7 @@ def worker(target, child_conn, close_fd_mask):
             child_conn.send(e)
             break
         else:
-            total_coverage = 0
-            cov_data = cov.get_data()
-            for filename in cov_data._arcs:
-                total_coverage += len(cov_data._arcs[filename])
-            child_conn.send(total_coverage)
+            child_conn.send(tracer.get_coverage())
 
 
 class Fuzzer(object):

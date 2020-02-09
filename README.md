@@ -98,8 +98,6 @@ PythonFuzz is a port of [fuzzitdev/jsfuzz](https://github.com/fuzzitdev/jsfuzz)
 which is in turn heavily based on [go-fuzz](https://github.com/dvyukov/go-fuzz) originally developed by [Dmitry Vyukov's](https://twitter.com/dvyukov).
 Which is in turn heavily based on [Michal Zalewski](https://twitter.com/lcamtuf) [AFL](http://lcamtuf.coredump.cx/afl/).
 
-For coverage PythonFuzz is using [coverage](https://coverage.readthedocs.io/en/v4.5.x/) instrumentation and coverage library. 
-
 ## Contributions
 
 Contributions are welcome!:) There are still a lot of things to improve, and tests and features to add. We will slowly post those in the

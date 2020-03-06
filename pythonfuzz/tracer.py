@@ -30,7 +30,4 @@ def trace(frame, event, arg):
 
 
 def get_coverage():
-    ret = 0
-    for value in data.values():
-        ret += len(value)
-    return ret
+    return sum(map(len, data.values()))

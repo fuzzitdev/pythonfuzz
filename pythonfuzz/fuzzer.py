@@ -46,7 +46,7 @@ def worker(target, child_conn, close_fd_mask):
             child_conn.send(e)
             break
         else:
-            child_conn.send(tracer.get_coverage())
+            child_conn.send_bytes(b'%d' % tracer.get_coverage())
 
 
 class Fuzzer(object):
@@ -135,8 +135,9 @@ class Fuzzer(object):
                 self.write_sample(buf, prefix='timeout-')
                 break
 
-            total_coverage = parent_conn.recv()
-            if type(total_coverage) != int:
+            try:
+                total_coverage = int(parent_conn.recv_bytes())
+            except ValueError:
                 self.write_sample(buf)
                 break
 

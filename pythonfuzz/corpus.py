@@ -1,6 +1,5 @@
 import os
 import math
-import numpy
 import random
 import struct
 import hashlib
@@ -9,8 +8,8 @@ from . import dictionary
 
 
 INTERESTING8 = [-128, -1, 0, 1, 16, 32, 64, 100, 127]
-INTERESTING16 = [-32768, -129, 128, 255, 256, 512, 1000, 1024, 4096, 32767]
-INTERESTING32 = [-2147483648, -100663046, -32769, 32768, 65535, 65536, 100663045, 2147483647]
+INTERESTING16 = [0, 128, 255, 256, 512, 1000, 1024, 4096, 32767, 65535]
+INTERESTING32 = [0, 1, 32768, 65535, 65536, 100663045, 2147483647, 4294967295]
 
 
 # A list of all the mutator clases we have available
@@ -206,11 +205,8 @@ class MutatorAddSubByte(Mutator):
         if len(res) == 0:
             return None
         pos = self._rand(len(res))
-        v = self._rand(35) + 1
-        if bool(random.getrandbits(1)):
-            res[pos] = numpy.uint8(res[pos]) + numpy.uint8(v)
-        else:
-            res[pos] = numpy.uint8(res[pos]) - numpy.uint8(v)
+        v = self._rand(2**8)
+        res[pos] = (res[pos] + v) % 256
         return res
 
 
@@ -223,16 +219,14 @@ class MutatorAddSubShort(Mutator):
         if len(res) < 2:
             return None
         pos = self._rand(len(res) - 1)
-        v = numpy.uint16(self._rand(35) + 1)
-        if bool(random.getrandbits(1)):
-            v = numpy.uint16(0) - v
+        v = self._rand(2**16)
         if bool(random.getrandbits(1)):
             v = struct.pack('>H', v)
         else:
             v = struct.pack('<H', v)
         v = bytearray(v)
-        res[pos] = numpy.uint8(res[pos] + v[0])
-        res[pos+1] = numpy.uint8(res[pos] + v[1])
+        res[pos] = (res[pos] + v[0]) % 256
+        res[pos+1] = (res[pos] + v[1]) % 256
         return res
 
 
@@ -245,16 +239,16 @@ class MutatorAddSubLong(Mutator):
         if len(res) < 4:
             return None
         pos = self._rand(len(res) - 3)
-        v = numpy.uint32(self._rand(35) + 1)
-        if bool(random.getrandbits(1)):
-            v = numpy.uint32(0) - v
+        v = self._rand(2**32)
         if bool(random.getrandbits(1)):
             v = struct.pack('>I', v)
         else:
             v = struct.pack('<I', v)
         v = bytearray(v)
-        for k in range(4):
-            res[pos+k] = numpy.uint8(res[pos+k] + v[k])
+        res[pos] = (res[pos] + v[0]) % 256
+        res[pos+1] = (res[pos+1] + v[1]) % 256
+        res[pos+2] = (res[pos+2] + v[2]) % 256
+        res[pos+3] = (res[pos+3] + v[3]) % 256
         return res
 
 
@@ -267,16 +261,20 @@ class MutatorAddSubLongLong(Mutator):
         if len(res) < 8:
             return None
         pos = self._rand(len(res) - 7)
-        v = numpy.uint64(self._rand(35) + 1)
-        if bool(random.getrandbits(1)):
-            v = numpy.uint64(0) - v
+        v = self._rand(2**64)
         if bool(random.getrandbits(1)):
             v = struct.pack('>Q', v)
         else:
             v = struct.pack('<Q', v)
         v = bytearray(v)
-        for k in range(8):
-            res[pos+k] = numpy.uint8(res[pos+k] + v[k])
+        res[pos] = (res[pos] + v[0]) % 256
+        res[pos+1] = (res[pos+1] + v[1]) % 256
+        res[pos+2] = (res[pos+2] + v[2]) % 256
+        res[pos+3] = (res[pos+3] + v[3]) % 256
+        res[pos+4] = (res[pos+4] + v[4]) % 256
+        res[pos+5] = (res[pos+5] + v[5]) % 256
+        res[pos+6] = (res[pos+6] + v[6]) % 256
+        res[pos+7] = (res[pos+7] + v[7]) % 256
         return res
 
 
@@ -289,7 +287,7 @@ class MutatorReplaceByte(Mutator):
         if len(res) == 0:
             return None
         pos = self._rand(len(res))
-        res[pos] = numpy.uint8(INTERESTING8[self._rand(len(INTERESTING8))])
+        res[pos] = INTERESTING8[self._rand(len(INTERESTING8))] % 256
         return res
 
 
@@ -302,14 +300,14 @@ class MutatorReplaceShort(Mutator):
         if len(res) < 2:
             return None
         pos = self._rand(len(res) - 1)
-        v = numpy.uint16(INTERESTING16[self._rand(len(INTERESTING16))])
+        v = random.choice(INTERESTING16)
         if bool(random.getrandbits(1)):
             v = struct.pack('>H', v)
         else:
             v = struct.pack('<H', v)
         v = bytearray(v)
-        res[pos] = numpy.uint8(v[0])
-        res[pos+1] = numpy.uint8(v[1])
+        res[pos] = v[0] % 256
+        res[pos+1] = v[1] % 256
         return res
 
 
@@ -322,14 +320,16 @@ class MutatorReplaceLong(Mutator):
         if len(res) < 4:
             return None
         pos = self._rand(len(res) - 3)
-        v = numpy.uint32(INTERESTING32[self._rand(len(INTERESTING32))])
+        v = random.choice(INTERESTING32)
         if bool(random.getrandbits(1)):
             v = struct.pack('>I', v)
         else:
             v = struct.pack('<I', v)
         v = bytearray(v)
-        for k in range(4):
-            res[pos+k] = numpy.uint8(v[k])
+        res[pos] = v[0] % 256
+        res[pos+1] = v[1] % 256
+        res[pos+2] = v[2] % 256
+        res[pos+3] = v[3] % 256
         return res
 
 

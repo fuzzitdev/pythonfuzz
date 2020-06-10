@@ -412,6 +412,7 @@ class Corpus(object):
         self._seed_run_finished = not self._inputs
         self._seed_idx = 0
         self._save_corpus = dirs and os.path.isdir(dirs[0])
+        self._inputs.append(bytearray(0))
 
         # Work out what we'll filter
         filters = mutators_filter.split(' ') if mutators_filter else []
@@ -488,13 +489,8 @@ class Corpus(object):
                 self._seed_run_finished = True
             return next_input
 
-        if len(self._inputs) == 0:
-            zero_test_case = bytearray(0)
-            self.put(zero_test_case)
-            return zero_test_case
-        else:
-            buf = self._inputs[self._rand(len(self._inputs))]
-            return self.mutate(buf)
+        buf = self._inputs[self._rand(len(self._inputs))]
+        return self.mutate(buf)
 
     def mutate(self, buf):
         res = buf[:]
